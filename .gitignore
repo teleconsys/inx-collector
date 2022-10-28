@@ -1,0 +1,5 @@
+.idea
+.DS_Store
+collector.db
+inx-collector
+/database

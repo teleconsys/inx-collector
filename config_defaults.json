@@ -1,0 +1,49 @@
+{
+    "app": {
+        "checkForUpdates": true,
+        "shutdown": {
+            "stopGracePeriod": "5m",
+            "log": {
+                "enabled": true,
+                "filePath": "shutdown.log"
+            }
+        }
+    },
+    "logger": {
+        "level": "info",
+        "disableCaller": true,
+        "disableStacktrace": false,
+        "stacktraceLevel": "panic",
+        "encoding": "console",
+        "outputPaths": [
+            "stdout"
+        ],
+        "disableEvents": true
+    },
+    "inx": {
+        "address": "localhost:9029",
+        "maxConnectionAttempts": 30
+    },
+    "restAPI": {
+        "bindAddress": "localhost:9030",
+        "advertiseAddress": "",
+        "debugRequestLoggerEnabled": false
+    },
+    "storage": {
+        "endpoint": "minio:9000",
+        "accessKeyId": "",
+        "secretAccessKey": "",
+        "defaultBucketName": "shimmer-mainnet-default",
+        "defaultBucketExpirationDays": 30,
+        "region": "eu-south-1",
+        "objectExtension": "",
+        "secure": true
+    },
+    "POI": {
+        "hostUrl": "inx-poi:9687",
+        "isPlugin": true
+    },
+    "listener": {
+        "filters": ""
+    }
+}
