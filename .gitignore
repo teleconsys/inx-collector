@@ -3,3 +3,4 @@
 collector.db
 inx-collector
 /database
+/tools/datapayloads_tester/target

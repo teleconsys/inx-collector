@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/iotaledger/datapayloads.go"
 	"github.com/iotaledger/hive.go/core/logger"
 	inx "github.com/iotaledger/inx/go"
 	iotago "github.com/iotaledger/iota.go/v3"
@@ -144,6 +145,45 @@ func (l *Listener) checkAndStore(tag string, filterId string, block *iotago.Bloc
 				return nil
 			}
 		}
+
+		// checks if the filter has a specified public key, if it does it verifies the data
+		if len(filter.PublicKey) != 0 {
+			jsonPayload, err := block.Payload.MarshalJSON()
+			if err != nil {
+				return err
+			}
+
+			td := iotago.TaggedData{}
+
+			err = td.UnmarshalJSON(jsonPayload)
+			if err != nil {
+				panic(err)
+			}
+
+			signedPayload := &datapayloads.SignedDataContainer{}
+			err = signedPayload.UnmarshalJSON(td.Data)
+			if err != nil {
+				return nil
+			}
+
+			decodedFilterPublicKey, err := hex.DecodeString(filter.PublicKey)
+			if err != nil {
+				return err
+			}
+
+			publicKey, err := signedPayload.PublicKey()
+			if fmt.Sprintf("%v", publicKey) != fmt.Sprintf("%v", decodedFilterPublicKey) {
+				l.WrappedLogger.LogInfof("Found data with a public key that doesn't match expected public key")
+				return nil
+			}
+
+			signedPayload.VerifySignature()
+			if err != nil {
+				return err
+			}
+
+		}
+
 		blockIdStr := hex.EncodeToString(blockId.GetId())
 		var object storage.Object
 		if filter.WithPOI {

@@ -5,10 +5,15 @@ go 1.19
 require (
 	github.com/go-playground/validator/v10 v10.4.1
 	github.com/iotaledger/hive.go/serializer/v2 v2.0.0-rc.1
-	github.com/iotaledger/iota.go/v3 v3.0.0-rc.1
+	github.com/iotaledger/iota.go/v3 v3.0.0-rc.1.0.20230209162540-d0cd57775f0b
 	go.uber.org/dig v1.15.0
 )
 
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
 
 require (
 	filippo.io/edwards25519 v1.0.0 // indirect
@@ -91,10 +96,12 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/iotaledger/datapayloads.go v0.0.0-20230213201919-cd772f73f013
 	github.com/iotaledger/hive.go/core v1.0.0-rc.1
 	github.com/iotaledger/inx-app v1.0.0-rc.1
 	github.com/iotaledger/inx/go v1.0.0-rc.1
 	github.com/labstack/echo/v4 v4.9.0
+	github.com/stretchr/testify v1.8.1
 	golang.org/x/net v0.0.0-20220923203811-8be639271d50 // indirect
 	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8 // indirect
 	golang.org/x/text v0.3.7 // indirect
