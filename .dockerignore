@@ -37,3 +37,6 @@ tools/
 
 # Executable
 /inx-collector
+
+# Tools
+/tools
