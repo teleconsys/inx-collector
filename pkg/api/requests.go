@@ -16,6 +16,7 @@ type RequestConstraint interface {
 
 type RequestSubscribeBody struct {
 	Tag        string `json:"tag" validate:"required"`
+	PublicKey  string `json:"publicKey"`
 	Duration   string `json:"duration"`
 	BucketName string `json:"bucketName"`
 	WithPOI    bool   `json:"withPOI"`

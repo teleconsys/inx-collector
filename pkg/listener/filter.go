@@ -11,6 +11,7 @@ import (
 
 type Filter struct {
 	Tag        string    `json:"tag" validate:"required"`
+	PublicKey  string    `json:"publicKey,omitempty"`
 	Id         string    `json:"id,omitempty"`
 	BucketName string    `json:"bucketName,omitempty"`
 	WithPOI    bool      `json:"withPOI,omitempty"`
@@ -22,9 +23,10 @@ type StartupFilters struct {
 	Filters []Filter `json:"filters"`
 }
 
-func NewFilter(tag string, bucketName string, duration string, withPOI bool) Filter {
+func NewFilter(tag string, publicKey string, bucketName string, duration string, withPOI bool) Filter {
 	return Filter{
 		Tag:        tag,
+		PublicKey:  publicKey,
 		BucketName: bucketName,
 		WithPOI:    withPOI,
 		Duration:   duration,
