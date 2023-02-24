@@ -58,21 +58,21 @@ func (l *Listener) Run(client inx.INXClient, ctx context.Context) error {
 		}
 		// get tagged data
 		blockId := newBlock.GetBlockId()
-		tag, block, err := GetTaggedDataFromId(blockId, client, ctx)
+		taggedData, block, err := GetTaggedDataFromId(blockId, client, ctx)
 		if err != nil {
 			l.WrappedLogger.LogErrorf("could not process block, error: %w", err)
 			continue
 		}
 		// starts a routine to manage the tagged payload and keeps listening
-		go func(filters map[string]Filter, tag string, block iotago.Block, blockId inx.BlockId, c context.Context) {
+		go func(filters map[string]Filter, taggedData iotago.TaggedData, block iotago.Block, blockId inx.BlockId, c context.Context) {
 			for filterId := range filters {
-				err := l.checkAndStore(tag, filterId, &block, blockId, ctx)
+				err := l.checkAndStore(taggedData, filterId, &block, blockId, ctx)
 				if err != nil {
 					l.WrappedLogger.LogErrorf("tagged data error: %w", err)
 					continue
 				}
 			}
-		}(l.Filters, tag, *block, *blockId, ctx)
+		}(l.Filters, taggedData, *block, *blockId, ctx)
 	}
 }
 
@@ -134,10 +134,10 @@ func (l *Listener) checkFilterExpired(filterId string) bool {
 	return filterExpired
 }
 
-func (l *Listener) checkAndStore(tag string, filterId string, block *iotago.Block, blockId inx.BlockId, ctx context.Context) error {
+func (l *Listener) checkAndStore(taggedData iotago.TaggedData, filterId string, block *iotago.Block, blockId inx.BlockId, ctx context.Context) error {
 	var err error
 	filter := l.Filters[filterId]
-	if tag == filter.Tag {
+	if string(taggedData.Tag) == filter.Tag {
 		if filter.Duration != "" {
 			// checks if the filter expired, if it is, skips and removes the filter
 			if l.checkFilterExpired(filterId) {
@@ -148,36 +148,33 @@ func (l *Listener) checkAndStore(tag string, filterId string, block *iotago.Bloc
 
 		// checks if the filter has a specified public key, if it does it verifies the data
 		if len(filter.PublicKey) != 0 {
-			jsonPayload, err := block.Payload.MarshalJSON()
-			if err != nil {
-				return err
-			}
+			// TODO: add logging
 
-			td := iotago.TaggedData{}
-
-			err = td.UnmarshalJSON(jsonPayload)
-			if err != nil {
-				panic(err)
-			}
-
-			signedPayload := &datapayloads.SignedDataContainer{}
-			err = signedPayload.UnmarshalJSON(td.Data)
+			// Get data container from bytes
+			signedPayload, err := datapayloads.NewSignedDataContainerFromBytes(taggedData.Data)
 			if err != nil {
 				return nil
 			}
 
+			// get filter public key (TODO: inefficient, should do only once)
 			decodedFilterPublicKey, err := hex.DecodeString(filter.PublicKey)
 			if err != nil {
 				return err
 			}
 
+			// get signed data public key
 			publicKey, err := signedPayload.PublicKey()
+			if err != nil {
+				return err
+			}
+
+			// check if public keys are the same (TODO: should find a better way to perform comparison)
 			if fmt.Sprintf("%v", publicKey) != fmt.Sprintf("%v", decodedFilterPublicKey) {
-				l.WrappedLogger.LogInfof("Found data with a public key that doesn't match expected public key")
 				return nil
 			}
 
-			signedPayload.VerifySignature()
+			// verifies signature
+			err = signedPayload.VerifySignature()
 			if err != nil {
 				return err
 			}

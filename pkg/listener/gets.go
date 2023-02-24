@@ -12,30 +12,31 @@ import (
 	iotago "github.com/iotaledger/iota.go/v3"
 )
 
-func GetTaggedDataFromId(blockId *inx.BlockId, client inx.INXClient, ctx context.Context) (string, *iotago.Block, error) {
+func GetTaggedDataFromId(blockId *inx.BlockId, client inx.INXClient, ctx context.Context) (iotago.TaggedData, *iotago.Block, error) {
 	var block *iotago.Block
+	taggedData := iotago.TaggedData{}
+
 	rawBlock, err := client.ReadBlock(ctx, blockId)
 	if err != nil {
-		return "", block, err
+		return taggedData, block, err
 	}
 	block, err = rawBlock.UnwrapBlock(serializer.DeSeriModeNoValidation, &iotago.ProtocolParameters{})
 	if err != nil {
-		return "", block, err
+		return taggedData, block, err
 	}
 	blockPayload := block.Payload
 	if blockPayload.PayloadType() != iotago.PayloadTaggedData {
-		return "", block, nil
+		return taggedData, block, nil
 	}
 
 	payloadBytes, _ := blockPayload.Serialize(serializer.DeSeriModeNoValidation, ctx)
 
-	taggedData := iotago.TaggedData{}
 	_, err = taggedData.Deserialize(payloadBytes, serializer.DeSeriModeNoValidation, ctx)
 	if err != nil {
-		return "", block, err
+		return taggedData, block, err
 	}
 
-	return string(taggedData.Tag), block, nil
+	return taggedData, block, nil
 }
 
 func GetObjectFromTanglePOI(blockId string, poiHandler poi.POIHandler) (storage.Object, error) {
