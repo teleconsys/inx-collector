@@ -199,6 +199,7 @@ func getSubscribedSignedPayload(taggedData iotago.TaggedData, expectedPublicKey 
 
 	// check if public keys are the same
 	if !reflect.DeepEqual(publicKey, expectedPublicKey) {
+		err = fmt.Errorf("public key does not match")
 		return signedPayload, err
 	}
 
