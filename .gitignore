@@ -1,6 +1,9 @@
-.idea
-.DS_Store
-collector.db
-inx-collector
-/database
-/tools/datapayloads_tester/target
+
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work

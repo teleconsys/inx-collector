@@ -7,10 +7,10 @@ _Collector_ fulfills the need of many applications using the IOTA network as a s
 
 The plug-in offers two modes through which it stores blocks:
 
-- retaining a `block` by `block id` via REST API
-- retaining all referenced blocks containing a `tagged payload` received by the node from the network. The plugin only stores that with the specified `tags`. If a `publicKey` is also provided, the plugin will store only those messages that provide a valid `signature` for the specified `publicKey` (this feature is implemented using the [`datapayloads`](https://github.com/iotaledger/datapayloads.go) lib). This mode can be set either via REST API (non-persistent) or with a specific configuration string in the configuration file (persistent).
+- retaining a `Block` by `BlockId` via REST API
+- retaining all referenced blocks containing a `TaggedData Payload` received by the node from the network. The plugin only stores that with the specified `Tags`. If a `PublicKey` is also provided, the plugin will store only those messages that provide a valid `Signature` for the specified `PublicKey` (this feature is implemented using the [datapayloads lib](https://github.com/iotaledger/datapayloads.go)). This mode can be set either via REST API (non-persistent) or with a specific configuration string in the configuration file (persistent).
 
-The collected blocks are stored in an object storage that can be either local to the node or remote. In the case of mission-critical application scenarios, several nodes/plug-ins may share the same remote object storage. This allows the client to obtain blocks stored by several alternative nodes and avoids data loss if a certain single node is down. The plug-in only selects Tagged blocks referenced by a `milestone` and, if specified, can also generate and store the Proof of Inclusion (POI). The client can obtain just the block or the full POI, and return them via REST API response in either fashion.
+The collected blocks are stored in an object storage that can be either local to the node or remote. In the case of mission-critical application scenarios, several nodes/plug-ins may share the same remote object storage. This allows the client to obtain blocks stored by several alternative nodes and avoids data loss if a certain single node is down. The plug-in only selects Tagged blocks referenced by a _milestone_ and, if specified, can also generate and store the _Proof of Inclusion_ (POI). The client can obtain just the `Block` or the full POI, and return them via REST API response in either fashion.
 
 The duration of block storage in the Object Storage is limited by two factors:
 
@@ -36,8 +36,8 @@ type Filter struct {
 ```
 The `Tag` is required, as it is the tag you want to listen to. The `Id` is the `filterId`, it is generated from the software and returned by the API when you create a filter, in this way you can stop that filter using its `Id`. `BucketName` specifies the bucket where the filter stores the blocks. `WithPOI` specifies if the Proof of Inclusion has to be stored. `Duration` specifies the duration of the filter, the string must follow the format specified [here](https://pkg.go.dev/time#ParseDuration), if the `Duration` is empty, the filter will run until is manually stopped. 
 
-### **By using the `PublicKey` field, and by sending `SignedData` using the [`datapayloads lib`](https://github.com/iotaledger/datapayloads.go), you can selectively and automatically store all your application data.**
-If you add an ed25519 `PublicKey` to your filter (as a hexadecimal string) the plugin will still listen to the specified `Tag`, but will only store the payloads containing a [`SignedDataContainer`](https://github.com/iotaledger/datapayloads.go/blob/develop/signed_data_container.go) whose `signature` is valid against the `PublicKey`. 
+### **By using the `PublicKey` field, and by sending `SignedData` using the [datapayloads lib](https://github.com/iotaledger/datapayloads.go), you can selectively and automatically store all your application data.**
+If you add an ed25519 `PublicKey` to your filter (as a **hexadecimal string**) the plugin will still listen to the specified `Tag`, but will only store the payloads containing a [`SignedDataContainer`](https://github.com/iotaledger/datapayloads.go/blob/develop/signed_data_container.go) whose `Signature` is valid against the `PublicKey`. 
 
 ### :warning: **Filters instanced via REST API are not persistent!** :warning:
 Filters instanced via API will be lost every time the plugin is shut down. If you want a persistent filter that starts every time the plugin runs, you should set these `startup filters` as an environment variable, the format is that of a JSON string. To understand how to set those filters look at the example provided in the "Tunable parameters" section.
@@ -45,7 +45,7 @@ Filters instanced via API will be lost every time the plugin is shut down. If yo
 Instructions
 ---------------------------------
 
-To set up and use inx-collector you need to configure it and attach it to your shimmer node. Then, you can easily interact with it by [`REST APIs`](https://app.swaggerhub.com/apis-docs/Giordyfish/inx-collector/1.1.0). For a detailed set of instructions regarding how to set up your plugin, you can look at the [`INSTRUCTIONS`](INSTRUCTIONS.md).
+To set up and use inx-collector you need to configure it and attach it to your shimmer node. Then, you can easily interact with it by [REST APIs](https://app.swaggerhub.com/apis-docs/Giordyfish/inx-collector/1.1.0). For a detailed set of instructions regarding how to set up your plugin, you can look at the [INSTRUCTIONS](INSTRUCTIONS.md).
 
 
 Contacts

@@ -101,7 +101,7 @@ require (
 	github.com/iotaledger/inx-app v1.0.0-rc.1
 	github.com/iotaledger/inx/go v1.0.0-rc.1
 	github.com/labstack/echo/v4 v4.9.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.1 // indirect
 	golang.org/x/net v0.0.0-20220923203811-8be639271d50 // indirect
 	golang.org/x/sys v0.0.0-20220919091848-fb04ddd9f9c8 // indirect
 	golang.org/x/text v0.3.7 // indirect

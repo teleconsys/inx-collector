@@ -200,7 +200,11 @@ func (s *Server) subscribeToTag(c echo.Context) (string, string, error) {
 		bucketName = request.BucketName
 	}
 
-	filter := listener.NewFilter(request.Tag, request.PublicKey, bucketName, request.Duration, request.WithPOI)
+	filter, err := listener.NewFilter(request.Tag, request.PublicKey, bucketName, request.Duration, request.WithPOI)
+	if err != nil {
+		return "", "", err
+	}
+
 	filterId, err := s.Collector.Listener.AddFilter(filter)
 	if err != nil {
 		return "", "", err
