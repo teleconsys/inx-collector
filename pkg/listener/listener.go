@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"reflect"
 
 	"github.com/iotaledger/datapayloads.go"
 	"github.com/iotaledger/hive.go/core/logger"
@@ -147,38 +148,21 @@ func (l *Listener) checkAndStore(taggedData iotago.TaggedData, filterId string, 
 		}
 
 		// checks if the filter has a specified public key, if it does it verifies the data
-		if len(filter.PublicKey) != 0 {
-			// TODO: add logging
+		if filter.PublicKeyBytes != nil {
 
-			// Get data container from bytes
-			signedPayload, err := datapayloads.NewSignedDataContainerFromBytes(taggedData.Data)
+			// check if this payload is a signed payload compliant to the filter specification
+			signedPayload, err := getSubscribedSignedPayload(taggedData, filter.PublicKeyBytes)
 			if err != nil {
-				return nil
-			}
-
-			// get filter public key (TODO: inefficient, should do only once)
-			decodedFilterPublicKey, err := hex.DecodeString(filter.PublicKey)
-			if err != nil {
+				err = fmt.Errorf("not a subscribed payload, %v", err)
 				return err
-			}
-
-			// get signed data public key
-			publicKey, err := signedPayload.PublicKey()
-			if err != nil {
-				return err
-			}
-
-			// check if public keys are the same (TODO: should find a better way to perform comparison)
-			if fmt.Sprintf("%v", publicKey) != fmt.Sprintf("%v", decodedFilterPublicKey) {
-				return nil
 			}
 
 			// verifies signature
 			err = signedPayload.VerifySignature()
 			if err != nil {
+				err = fmt.Errorf("subscribed payload with invalid signature, %v", err)
 				return err
 			}
-
 		}
 
 		blockIdStr := hex.EncodeToString(blockId.GetId())
@@ -198,4 +182,25 @@ func (l *Listener) checkAndStore(taggedData iotago.TaggedData, filterId string, 
 		}
 	}
 	return nil
+}
+
+func getSubscribedSignedPayload(taggedData iotago.TaggedData, expectedPublicKey []byte) (*datapayloads.SignedDataContainer, error) {
+	// try to get signed data container from bytes
+	signedPayload, err := datapayloads.NewSignedDataContainerFromBytes(taggedData.Data)
+	if err != nil {
+		return signedPayload, err
+	}
+
+	// get signed data public key
+	publicKey, err := signedPayload.PublicKey()
+	if err != nil {
+		return signedPayload, err
+	}
+
+	// check if public keys are the same
+	if !reflect.DeepEqual(publicKey, expectedPublicKey) {
+		return signedPayload, err
+	}
+
+	return signedPayload, nil
 }
