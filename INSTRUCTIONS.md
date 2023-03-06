@@ -90,7 +90,7 @@ STORAGE_EXTENSION=.json
 STORAGE_DEFAULT_BUCKET=shimmer-mainnet-default
 STORAGE_DEFAULT_EXPIRATION=30
 
-LISTENER_FILTERS={"filters":[{"tag":"testTag","duration":"20h","withPOI":true},{"tag":"testTag2"},{"tag":"testTag3", "bucketName":"test-bucket-1"}]}
+LISTENER_FILTERS={"filters":[{"tag":"testTag","publicKey":"7a882de7592ad1d6af7d19153b964f35891e2bdbc2e56beea659222b679781cc","duration":"20h","withPOI":true},{"tag":"testTag2"},{"tag":"testTag3", "bucketName":"test-bucket-1"}]}
 
 POI_URL=inx-poi:9687
 POI_PLUGIN:true
