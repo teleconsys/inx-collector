@@ -4,8 +4,10 @@ import (
 	"collector/pkg/poi"
 	"collector/pkg/storage"
 	"context"
+	"crypto"
 	"encoding/hex"
 	"fmt"
+	"reflect"
 
 	"github.com/iotaledger/datapayloads.go"
 	"github.com/iotaledger/hive.go/core/logger"
@@ -27,6 +29,9 @@ func NewListener(params Parameters, storage storage.Storage, poiHandler poi.POIH
 
 	if params.Filters != "" {
 		filters, err = UnmarshalStartupFilters(params.Filters)
+		if err != nil {
+			return Listener{}, err
+		}
 	}
 
 	listener := Listener{
@@ -49,7 +54,7 @@ func (l *Listener) Run(client inx.INXClient, ctx context.Context) error {
 	for {
 		newBlock, err := stream.Recv()
 		if err != nil {
-			l.WrappedLogger.LogErrorf("could not receive block, error: %w", err)
+			l.WrappedLogger.LogErrorf("Could not receive block, error: %w", err)
 			continue
 		}
 		// we do something only if we have filters
@@ -60,7 +65,7 @@ func (l *Listener) Run(client inx.INXClient, ctx context.Context) error {
 		blockId := newBlock.GetBlockId()
 		taggedData, block, err := GetTaggedDataFromId(blockId, client, ctx)
 		if err != nil {
-			l.WrappedLogger.LogErrorf("could not process block, error: %w", err)
+			l.WrappedLogger.LogErrorf("Could not process block, error: %w", err)
 			continue
 		}
 		// starts a routine to manage the tagged payload and keeps listening
@@ -68,7 +73,7 @@ func (l *Listener) Run(client inx.INXClient, ctx context.Context) error {
 			for filterId := range filters {
 				err := l.checkAndStore(taggedData, filterId, &block, blockId, ctx)
 				if err != nil {
-					l.WrappedLogger.LogErrorf("tagged data error: %w", err)
+					l.WrappedLogger.LogErrorf("Tagged data error: %w", err)
 					continue
 				}
 			}
@@ -77,21 +82,36 @@ func (l *Listener) Run(client inx.INXClient, ctx context.Context) error {
 }
 
 func (l *Listener) AddFilter(filter Filter) (string, error) {
+	// sets filter expiration
 	if filter.Duration != "" {
 		err := filter.setExpiration()
 		if err != nil {
 			return "", err
 		}
 	}
-	filter.setId()
-	for _, f := range l.Filters {
-		if f.Id == filter.Id {
-			err := fmt.Errorf("filter id '%s' already exists", filter.Id)
+
+	// decode public key bytes if present
+	if filter.PublicKey != "" {
+		err := filter.setPublicKeyDecoded()
+		if err != nil {
 			return "", err
 		}
 	}
+
+	filter.setId()
+	for _, f := range l.Filters {
+		if f.Id == filter.Id {
+			err := fmt.Errorf("Filter id '%s' already exists", filter.Id)
+			return "", err
+		}
+	}
+
 	l.Filters[filter.Id] = filter
-	l.WrappedLogger.LogInfof("Filter '%s' added, listening on tag: '%s'", filter.Id, filter.Tag)
+	if filter.PublicKeyDecoded == nil {
+		l.WrappedLogger.LogInfof("Filter '%s' added, listening on tag: '%s'", filter.Id, filter.Tag)
+	} else {
+		l.WrappedLogger.LogInfof("Filter '%s' added, listening on tag: '%s' , for public key '%s'", filter.Id, filter.Tag, filter.PublicKey)
+	}
 	return filter.Id, nil
 }
 
@@ -147,38 +167,21 @@ func (l *Listener) checkAndStore(taggedData iotago.TaggedData, filterId string, 
 		}
 
 		// checks if the filter has a specified public key, if it does it verifies the data
-		if len(filter.PublicKey) != 0 {
-			// TODO: add logging
+		if filter.PublicKeyDecoded != nil {
 
-			// Get data container from bytes
-			signedPayload, err := datapayloads.NewSignedDataContainerFromBytes(taggedData.Data)
+			// check if this payload is a signed payload compliant to the filter specification
+			signedPayload, err := getSubscribedSignedPayload(taggedData, filter.PublicKeyDecoded)
 			if err != nil {
-				return nil
-			}
-
-			// get filter public key (TODO: inefficient, should do only once)
-			decodedFilterPublicKey, err := hex.DecodeString(filter.PublicKey)
-			if err != nil {
-				return err
-			}
-
-			// get signed data public key
-			publicKey, err := signedPayload.PublicKey()
-			if err != nil {
-				return err
-			}
-
-			// check if public keys are the same (TODO: should find a better way to perform comparison)
-			if fmt.Sprintf("%v", publicKey) != fmt.Sprintf("%v", decodedFilterPublicKey) {
+				l.WrappedLogger.LogInfof("Discarding unsubscribed payload")
 				return nil
 			}
 
 			// verifies signature
 			err = signedPayload.VerifySignature()
 			if err != nil {
-				return err
+				l.WrappedLogger.LogWarnf("Discarding a subscribed payload with invalid signature")
+				return nil
 			}
-
 		}
 
 		blockIdStr := hex.EncodeToString(blockId.GetId())
@@ -198,4 +201,26 @@ func (l *Listener) checkAndStore(taggedData iotago.TaggedData, filterId string, 
 		}
 	}
 	return nil
+}
+
+func getSubscribedSignedPayload(taggedData iotago.TaggedData, expectedPublicKey crypto.PublicKey) (*datapayloads.SignedDataContainer, error) {
+	// try to get signed data container from bytes
+	signedPayload, err := datapayloads.NewSignedDataContainerFromBytes(taggedData.Data)
+	if err != nil {
+		return signedPayload, err
+	}
+
+	// get signed data public key
+	publicKey, err := signedPayload.PublicKey()
+	if err != nil {
+		return signedPayload, err
+	}
+
+	// check if public keys are the same
+	if !reflect.DeepEqual(publicKey, expectedPublicKey) {
+		err = fmt.Errorf("public key does not match")
+		return signedPayload, err
+	}
+
+	return signedPayload, nil
 }
