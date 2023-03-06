@@ -1,6 +1,8 @@
 package listener
 
 import (
+	"crypto"
+	"crypto/ed25519"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -11,14 +13,14 @@ import (
 )
 
 type Filter struct {
-	Tag            string `json:"tag" validate:"required"`
-	PublicKey      string `json:"publicKey,omitempty"`
-	Id             string `json:"id,omitempty"`
-	BucketName     string `json:"bucketName,omitempty"`
-	WithPOI        bool   `json:"withPOI,omitempty"`
-	Duration       string `json:"duration,omitempty"`
-	Expiration     time.Time
-	PublicKeyBytes []byte
+	Tag              string `json:"tag" validate:"required"`
+	PublicKey        string `json:"publicKey,omitempty"`
+	Id               string `json:"id,omitempty"`
+	BucketName       string `json:"bucketName,omitempty"`
+	WithPOI          bool   `json:"withPOI,omitempty"`
+	Duration         string `json:"duration,omitempty"`
+	Expiration       time.Time
+	PublicKeyDecoded crypto.PublicKey
 }
 
 type StartupFilters struct {
@@ -35,7 +37,7 @@ func NewFilter(tag string, publicKey string, bucketName string, duration string,
 	}
 
 	if filter.PublicKey != "" {
-		err := filter.setPublicKeyBytes()
+		err := filter.setPublicKeyDecoded()
 		if err != nil {
 			return Filter{}, err
 		}
@@ -48,13 +50,22 @@ func (f *Filter) setId() {
 	f.Id = fmt.Sprintf("%x", md5.Sum([]byte(fmt.Sprintf("%v", f))))
 }
 
-func (f *Filter) setPublicKeyBytes() error {
+func (f *Filter) setPublicKeyDecoded() error {
 	publicKeyBytes, err := hex.DecodeString(f.PublicKey)
 	if err != nil {
 		return err
 	}
 
-	f.PublicKeyBytes = publicKeyBytes
+	pubKeyLen := len(publicKeyBytes)
+	if pubKeyLen != ed25519.PublicKeySize {
+		err = fmt.Errorf("invalid length for public key, got %d, wanted %d", pubKeyLen, ed25519.PublicKeySize)
+		return err
+	}
+
+	var publicKeyDecoded [ed25519.PublicKeySize]byte
+	copy(publicKeyDecoded[:], publicKeyBytes)
+
+	f.PublicKeyDecoded = publicKeyDecoded
 	return nil
 }
 
@@ -82,15 +93,15 @@ func UnmarshalStartupFilters(filtersString string) ([]Filter, error) {
 		return filters.Filters, err
 	}
 
-	// validate filters
 	for _, filter := range filters.Filters {
+
+		// validate filters
 		err = validator.New().Struct(filter)
 		if err != nil {
 			return filters.Filters, err
 		}
-		if filter.PublicKey != "" {
-			filter.setPublicKeyBytes()
-		}
+
 	}
+
 	return filters.Filters, nil
 }
