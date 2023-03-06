@@ -40,7 +40,7 @@ The `Tag` is required, as it is the tag you want to listen to. The `Id` is the `
 If you add an ed25519 `PublicKey` to your filter (as a **hexadecimal string**) the plugin will still listen to the specified `Tag`, but will only store the payloads containing a [`SignedDataContainer`](https://github.com/iotaledger/datapayloads.go/blob/develop/signed_data_container.go) whose `Signature` is valid against the `PublicKey`. 
 
 ### :warning: **Filters instanced via REST API are not persistent!** :warning:
-Filters instanced via API will be lost every time the plugin is shut down. If you want a persistent filter that starts every time the plugin runs, you should set these `startup filters` as an environment variable, the format is that of a JSON string. To understand how to set those filters look at the example provided in the "Tunable parameters" section.
+Filters instanced via API will be lost every time the plugin is shut down. If you want a persistent filter that starts every time the plugin runs, you should set these `startup filters` as an environment variable, the format is that of a JSON string. To understand how to set those filters look at the example provided in the [tunable parameters section](INSTRUCTIONS.md#tunable-parameters) inside the instructions.
 
 Instructions
 ---------------------------------
