@@ -27,14 +27,14 @@ services:
 ```
 [If you want to see the minio console from your browser, you should match port 9001 with an available port on your local machine]
 
-To run a collector plugin, the docker image is already been built as `giordyfish/inx-collector:1.1.0`, we need to also add it to the .yml file: 
+To run a collector plugin, the docker image is already been built as `giordyfish/inx-collector:latest`, we need to also add it to the .yml file: 
 
 ```yml
 services:
 
   inx-collector:
     container_name: inx-collector
-    image: giordyfish/inx-collector:1.1.0
+    image: giordyfish/inx-collector:latest
     stop_grace_period: 5m
     restart: unless-stopped
     depends_on:
