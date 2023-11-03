@@ -69,7 +69,7 @@ func (l *Listener) Run(client inx.INXClient, ctx context.Context) error {
 			continue
 		}
 		// starts a routine to manage the tagged payload and keeps listening
-		go func(filters map[string]Filter, taggedData iotago.TaggedData, block iotago.Block, blockId inx.BlockId, c context.Context) {
+		go func(filters map[string]Filter, taggedData iotago.TaggedData, block iotago.Block, blockId *inx.BlockId, c context.Context) {
 			for filterId := range filters {
 				err := l.checkAndStore(taggedData, filterId, &block, blockId, ctx)
 				if err != nil {
@@ -77,7 +77,7 @@ func (l *Listener) Run(client inx.INXClient, ctx context.Context) error {
 					continue
 				}
 			}
-		}(l.Filters, taggedData, *block, *blockId, ctx)
+		}(l.Filters, taggedData, *block, blockId, ctx)
 	}
 }
 
@@ -154,7 +154,7 @@ func (l *Listener) checkFilterExpired(filterId string) bool {
 	return filterExpired
 }
 
-func (l *Listener) checkAndStore(taggedData iotago.TaggedData, filterId string, block *iotago.Block, blockId inx.BlockId, ctx context.Context) error {
+func (l *Listener) checkAndStore(taggedData iotago.TaggedData, filterId string, block *iotago.Block, blockId *inx.BlockId, ctx context.Context) error {
 	var err error
 	filter := l.Filters[filterId]
 	if string(taggedData.Tag) == filter.Tag {

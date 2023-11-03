@@ -6,7 +6,7 @@ import (
 	"collector/pkg/poi"
 	"collector/pkg/storage"
 
-	"github.com/iotaledger/hive.go/core/app"
+	"github.com/iotaledger/hive.go/app"
 )
 
 var ParamsListener = &listener.Parameters{}

@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/iotaledger/hive.go/core/app/pkg/shutdown"
+	"github.com/iotaledger/hive.go/app/shutdown"
 	"github.com/iotaledger/hive.go/core/logger"
-	"github.com/iotaledger/inx-app/nodebridge"
+	"github.com/iotaledger/inx-app/pkg/nodebridge"
 )
 
 type Collector struct {

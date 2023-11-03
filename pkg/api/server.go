@@ -8,6 +8,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+const (
+	APIRoute = "/api/collector/v1"
+)
+
 type Server struct {
 	*logger.WrappedLogger
 	Collector *collector.Collector

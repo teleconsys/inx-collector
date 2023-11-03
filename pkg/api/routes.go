@@ -9,7 +9,7 @@ import (
 
 	"strings"
 
-	"github.com/iotaledger/inx-app/httpserver"
+	"github.com/iotaledger/inx-app/pkg/httpserver"
 	iotago "github.com/iotaledger/iota.go/v3"
 	"github.com/labstack/echo/v4"
 )

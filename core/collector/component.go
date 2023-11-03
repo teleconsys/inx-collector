@@ -8,31 +8,26 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"time"
 
 	"go.uber.org/dig"
 
-	"github.com/iotaledger/hive.go/core/app"
-	"github.com/iotaledger/hive.go/core/app/pkg/shutdown"
-	"github.com/iotaledger/inx-app/httpserver"
-	"github.com/iotaledger/inx-app/nodebridge"
+	"github.com/iotaledger/hive.go/app"
+	"github.com/iotaledger/hive.go/app/shutdown"
+	"github.com/iotaledger/inx-app/pkg/httpserver"
+	"github.com/iotaledger/inx-app/pkg/nodebridge"
 	"github.com/labstack/echo/v4"
 )
 
-const (
-	APIRoute = "collector/v1"
-)
-
 func init() {
-	CoreComponent = &app.CoreComponent{
-		Component: &app.Component{
-			Name:     "Collector",
-			DepsFunc: func(cDeps dependencies) { deps = cDeps },
-			Params:   params,
-			Provide:  provide,
-			Run:      run,
-		},
+	Component = &app.Component{
+		Name:     "Collector",
+		DepsFunc: func(cDeps dependencies) { deps = cDeps },
+		Params:   params,
+		Provide:  provide,
+		Run:      run,
 	}
 }
 
@@ -45,8 +40,8 @@ type dependencies struct {
 }
 
 var (
-	CoreComponent *app.CoreComponent
-	deps          dependencies
+	Component *app.Component
+	deps      dependencies
 )
 
 func provide(c *dig.Container) error {
@@ -60,7 +55,7 @@ func provide(c *dig.Container) error {
 	if err := c.Provide(func(deps inDeps) (*collector.Collector, error) {
 
 		return collector.NewCollector(
-			CoreComponent.Logger(),
+			Component.Logger(),
 			deps.NodeBridge,
 			deps.ShutdownHandler,
 			*ParamsStorage,
@@ -73,7 +68,7 @@ func provide(c *dig.Container) error {
 
 	if err := c.Provide(func() *echo.Echo {
 		return httpserver.NewEcho(
-			CoreComponent.Logger(),
+			Component.Logger(),
 			nil,
 			ParamsRestAPI.DebugRequestLoggerEnabled,
 		)
@@ -89,8 +84,8 @@ func run() error {
 	collectorInitWait := make(chan struct{})
 
 	// create a background worker that handles the collector events
-	if err := CoreComponent.Daemon().BackgroundWorker("Collector", func(ctx context.Context) {
-		CoreComponent.LogInfo("Starting Collector ...")
+	if err := Component.Daemon().BackgroundWorker("Collector", func(ctx context.Context) {
+		Component.LogInfo("Starting Collector ...")
 
 		go func() {
 			err := deps.Collector.Run(ctx)
@@ -101,12 +96,12 @@ func run() error {
 		close(collectorInitWait)
 
 	}, daemon.PriorityStopCollector); err != nil {
-		CoreComponent.LogPanicf("failed to start worker: %s", err)
+		Component.LogPanicf("failed to start worker: %s", err)
 	}
 
 	// create a background worker that handles the API
-	if err := CoreComponent.Daemon().BackgroundWorker("API", func(ctx context.Context) {
-		CoreComponent.LogInfo("Starting API ...")
+	if err := Component.Daemon().BackgroundWorker("API", func(ctx context.Context) {
+		Component.LogInfo("Starting API ...")
 
 		// we need to wait until the collector is initialized before starting the API or the daemon is canceled before that is done.
 		select {
@@ -115,14 +110,14 @@ func run() error {
 		case <-collectorInitWait:
 		}
 
-		CoreComponent.LogInfo("Starting API ... done")
-		CoreComponent.LogInfo("Starting API server ...")
+		Component.LogInfo("Starting API ... done")
+		Component.LogInfo("Starting API server ...")
 
 		_ = api.NewServer(deps.Collector, deps.Echo, deps.Collector.WrappedLogger, ctx)
 
 		go func() {
 			if err := deps.Echo.Start(ParamsRestAPI.BindAddress); err != nil && !errors.Is(err, http.ErrServerClosed) {
-				CoreComponent.LogErrorfAndExit("Stopped REST-API server due to an error (%s)", err)
+				Component.LogErrorfAndExit("Stopped REST-API server due to an error (%s)", err)
 			}
 		}()
 
@@ -133,33 +128,35 @@ func run() error {
 			advertisedAddress = ParamsRestAPI.AdvertiseAddress
 		}
 
-		if err := deps.NodeBridge.RegisterAPIRoute(ctxRegister, APIRoute, advertisedAddress); err != nil {
-			CoreComponent.LogErrorfAndExit("Registering INX api route failed: %s", err)
+		routeName := strings.Replace(api.APIRoute, "/api/", "", 1)
+
+		if err := deps.NodeBridge.RegisterAPIRoute(ctxRegister, routeName, advertisedAddress, api.APIRoute); err != nil {
+			Component.LogErrorfAndExit("Registering INX api route failed: %s", err)
 		}
 		cancelRegister()
 
-		CoreComponent.LogInfo("Starting API server ... done")
+		Component.LogInfo("Starting API server ... done")
 		<-ctx.Done()
-		CoreComponent.LogInfo("Stopping API ...")
+		Component.LogInfo("Stopping API ...")
 
 		ctxUnregister, cancelUnregister := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancelUnregister()
 
-		if err := deps.NodeBridge.UnregisterAPIRoute(ctxUnregister, APIRoute); err != nil {
-			CoreComponent.LogWarnf("Unregistering INX api route failed: %s", err)
+		if err := deps.NodeBridge.UnregisterAPIRoute(ctxUnregister, routeName); err != nil {
+			Component.LogWarnf("Unregistering INX api route failed: %s", err)
 		}
 
 		shutdownCtx, shutdownCtxCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer shutdownCtxCancel()
 
 		if err := deps.Echo.Shutdown(shutdownCtx); err != nil {
-			CoreComponent.LogWarn(err)
+			Component.LogWarn(err)
 		}
 
-		CoreComponent.LogInfo("Stopping API ... done")
+		Component.LogInfo("Stopping API ... done")
 
 	}, daemon.PriorityStopRestAPI); err != nil {
-		CoreComponent.LogPanicf("failed to start worker: %s", err)
+		Component.LogPanicf("failed to start worker: %s", err)
 	}
 
 	return nil
