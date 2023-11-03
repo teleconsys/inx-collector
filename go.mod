@@ -4,33 +4,32 @@ go 1.21
 
 require (
 	github.com/go-playground/validator/v10 v10.15.5
-	github.com/iotaledger/hive.go/serializer/v2 v2.0.0-rc.1.0.20231019081410-32f61b05bebe
-	github.com/iotaledger/iota.go/v3 v3.0.0-rc.3
 	go.uber.org/dig v1.17.0
 )
 
 require (
-	github.com/iotaledger/hive.go/app v0.0.0-20231103115013-7480bc1f8c37
+	github.com/iotaledger/hive.go/app v0.0.0-20230629181801-64c530ff9d15
 	github.com/iotaledger/hive.go/core v1.0.0-rc.3
+	github.com/iotaledger/hive.go/serializer/v2 v2.0.0-rc.1.0.20230417125513-e2e89991217f
 	github.com/iotaledger/inx-app v1.0.0-rc.3.0.20230417173151-cde47df5fe79
 	github.com/iotaledger/inx/go v1.0.0-rc.2
+	github.com/iotaledger/iota.go/v3 v3.0.0-rc.3
 	github.com/labstack/echo/v4 v4.11.1
 )
 
 require (
-	github.com/iotaledger/hive.go/ds v0.0.0-20231019081410-32f61b05bebe // indirect
-	github.com/iotaledger/hive.go/ierrors v0.0.0-20231019081410-32f61b05bebe // indirect
-	github.com/iotaledger/hive.go/logger v0.0.0-20231019081410-32f61b05bebe // indirect
-	github.com/iotaledger/hive.go/runtime v0.0.0-20231019081410-32f61b05bebe // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-)
-
-require (
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/holiman/uint256 v1.2.3 // indirect
-	github.com/iotaledger/hive.go/constraints v0.0.0-20231019081410-32f61b05bebe // indirect
-	github.com/iotaledger/hive.go/lo v0.0.0-20231019081410-32f61b05bebe // indirect
-	github.com/iotaledger/hive.go/stringify v0.0.0-20231019081410-32f61b05bebe // indirect
+	github.com/iotaledger/hive.go/constraints v0.0.0-20230417125513-e2e89991217f // indirect
+	github.com/iotaledger/hive.go/ds v0.0.0-20230417125513-e2e89991217f // indirect
+	github.com/iotaledger/hive.go/lo v0.0.0-20230417125513-e2e89991217f // indirect
+	github.com/iotaledger/hive.go/logger v0.0.0-20230629181801-64c530ff9d15 // indirect
+	github.com/iotaledger/hive.go/runtime v0.0.0-20230629181801-64c530ff9d15 // indirect
+	github.com/iotaledger/hive.go/stringify v0.0.0-20230417125513-e2e89991217f // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/prometheus/client_golang v1.16.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 )
 
 require (
@@ -57,7 +56,6 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
-	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/iancoleman/orderedmap v0.3.0 // indirect
 	github.com/iotaledger/iota.go v1.0.0 // indirect
@@ -85,10 +83,9 @@ require (
 	github.com/pasztorpisti/qs v0.0.0-20171216220353-8d6c33ee906c // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/petermattis/goid v0.0.0-20230904192822-1876fd5063bc // indirect
-	github.com/prometheus/client_golang v1.15.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
-	github.com/prometheus/procfs v0.9.0 // indirect
+	github.com/prometheus/procfs v0.10.1 // indirect
 	github.com/rogpeppe/go-internal v1.10.0 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/sasha-s/go-deadlock v0.3.1 // indirect
@@ -115,7 +112,6 @@ require (
 	github.com/iotaledger/datapayloads.go v0.0.0-20230320213740-f17aaa979f5b
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
-	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
