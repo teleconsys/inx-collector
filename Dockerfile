@@ -1,5 +1,5 @@
 # https://hub.docker.com/_/golang
-FROM golang:1.19-bullseye AS build
+FROM golang:1.21-bullseye AS build
 
 # Ensure ca-certificates are up to date
 RUN update-ca-certificates
