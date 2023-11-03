@@ -24,6 +24,6 @@ func NewServer(collector *collector.Collector, echo *echo.Echo, log *logger.Wrap
 		Collector:     collector,
 		Context:       ctx,
 	}
-	s.setupRoutes(echo)
+	s.setupRoutes(echo.Group(APIRoute))
 	return s
 }

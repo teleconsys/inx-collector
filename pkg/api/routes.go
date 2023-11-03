@@ -38,8 +38,8 @@ const (
 	RouteCreateBucket = "/bucket"
 )
 
-func (s *Server) setupRoutes(e *echo.Echo) {
-	e.GET(RouteGetBlock, func(c echo.Context) error {
+func (s *Server) setupRoutes(echoGroup *echo.Group) {
+	echoGroup.GET(RouteGetBlock, func(c echo.Context) error {
 		var err error
 		s.apiLogStart(RouteGetBlock)
 		defer s.apiLogEnd(RouteGetBlock, err)
@@ -62,7 +62,7 @@ func (s *Server) setupRoutes(e *echo.Echo) {
 		}
 		return httpserver.JSONResponse(c, http.StatusOK, &resp)
 	})
-	e.POST(RouteStore, func(c echo.Context) error {
+	echoGroup.POST(RouteStore, func(c echo.Context) error {
 		var err error
 		s.apiLogStart(RouteStore)
 		defer s.apiLogEnd(RouteStore, err)
@@ -73,7 +73,7 @@ func (s *Server) setupRoutes(e *echo.Echo) {
 		}
 		return httpserver.JSONResponse(c, http.StatusOK, fmt.Sprintf("Block '%s' uploaded to bucket '%s'", blockId, bucketName))
 	})
-	e.POST(RouteSubscribe, func(c echo.Context) error {
+	echoGroup.POST(RouteSubscribe, func(c echo.Context) error {
 		var err error
 		s.apiLogStart(RouteSubscribe)
 		defer s.apiLogEnd(RouteSubscribe, err)
@@ -84,7 +84,7 @@ func (s *Server) setupRoutes(e *echo.Echo) {
 		}
 		return httpserver.JSONResponse(c, http.StatusOK, fmt.Sprintf("Subscription to '%s' started, id is: '%s'", tag, filterId))
 	})
-	e.POST(RouteCreateBucket, func(c echo.Context) error {
+	echoGroup.POST(RouteCreateBucket, func(c echo.Context) error {
 		var err error
 		s.apiLogStart(RouteCreateBucket)
 		defer s.apiLogEnd(RouteCreateBucket, err)
@@ -95,7 +95,7 @@ func (s *Server) setupRoutes(e *echo.Echo) {
 		}
 		return httpserver.JSONResponse(c, http.StatusOK, fmt.Sprintf("Bucket '%s' created", bucketName))
 	})
-	e.DELETE(RouteDeleteBlock, func(c echo.Context) error {
+	echoGroup.DELETE(RouteDeleteBlock, func(c echo.Context) error {
 		var err error
 		s.apiLogStart(RouteDeleteBlock)
 		defer s.apiLogEnd(RouteDeleteBlock, err)
@@ -112,7 +112,7 @@ func (s *Server) setupRoutes(e *echo.Echo) {
 
 		return httpserver.JSONResponse(c, http.StatusOK, fmt.Sprintf("Object '%s' removed from bucket '%s'", params.BlockId, params.BucketName))
 	})
-	e.DELETE(RouteUnsubscribe, func(c echo.Context) error {
+	echoGroup.DELETE(RouteUnsubscribe, func(c echo.Context) error {
 		var err error
 		s.apiLogStart(RouteUnsubscribe)
 		defer s.apiLogEnd(RouteUnsubscribe, err)
